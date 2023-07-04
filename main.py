@@ -15,7 +15,7 @@ AIO_CLIENT_ID = ubinascii.hexlify(machine.unique_id())  # Can be anything
 AIO_SOIL_FEED = "your/feed/name" #Replace with your feed name
 AIO_TEMPERATURE_FEED = "your/feed/name" #Replace with your feed name
 AIO_HUMIDITY_FEED = "your/feed/name" #Replace with your feed name
-
+AIO_MOISTURE_FEED = "your/feed/name" #Replace with your feed name
 # Define the GPIO pin connected to the temperature and humidity sensor's OUT pin
 dht_sensor = dht.DHT11(machine.Pin(27))
 
@@ -33,8 +33,8 @@ min_sensor_value = 65535  # Replace with your minimum observed sensor value
 def is_water_needed():
     moisture_value = moisture_pin.read_u16()
     moisture_percentage = convert_to_percentage(moisture_value)
-    print("Moisture percentage:", moisture_percentage) #Prints to console, can be removed after testing.
-    client.publish(AIO_MOISTURE_FEED, str(moisture_percentage))  # Publish moisture percentage to the moisture feed
+    print("Moisture percentage:", moisture_percentage) # Prints to console, can be removed after testing.
+    client.publish(AIO_MOISTURE_FEED, str(moisture_percentage))  # Publish moisture percentage to Adafruit IO
     return moisture_percentage < threshold_percentage
 
 # Function to convert the sensor value to a percentage based on the range
@@ -52,7 +52,7 @@ def sub_cb(topic, msg):
 client.set_callback(sub_cb)
 client.connect()
 client.subscribe(AIO_TEMPERATURE_FEED)
-print("Connected to %s, subscribed to %s topic" % (AIO_SERVER, AIO_TEMPERATURE_FEED))
+print("Connected to %s, subscribed to %s topic" % (AIO_SERVER, AIO_TEMPERATURE_FEED)) # Prints to console, can be removed after testing.
 
 try:
     while True:
@@ -61,13 +61,13 @@ try:
             print("Water is needed.") #Prints to console, can be removed after testing.
             # Publish soil moisture data to Adafruit IO
             moisture_value = moisture_pin.read_u16()
-            moisture_percentage = convert_to_percentage(moisture_value)
-            client.publish(AIO_SOIL_FEED, "Water is Needed")
+            moisture_percentage = convert_to_percentage(moisture_value) 
+            client.publish(AIO_SOIL_FEED, "Water is Needed") 
         else:
             print("No watering required.") #Prints to console, can be removed after testing.
             # Publish soil moisture data to Adafruit IO
             client.publish(AIO_SOIL_FEED, "No watering required")
-        time.sleep(3600) #Set this to whatever time you want to update the soil moisture feed
+        time.sleep(120) #Set this to whatever time you want to update the soil moisture feed
         
         # Read temperature and humidity from DHT11 sensor
         dht_sensor.measure()
@@ -76,7 +76,7 @@ try:
         # Publish temperature and humidity data to Adafruit IO
         client.publish(AIO_TEMPERATURE_FEED, str(temperature))
         client.publish(AIO_HUMIDITY_FEED, str(humidity))
-        time.sleep(900) #Set this to whatever time you want to update the temperature and humidity feeds
+        
         
 except Exception as e:
     print("Error:", str(e))
